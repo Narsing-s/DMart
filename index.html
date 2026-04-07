@@ -5,7 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body{margin:0;font-family:Inter;background:#f7f7f7;overflow-x:hidden}
+    body{margin:0;font-family:Inter;background:#f7f7f7;display:flex;justify-content:center}
+
+    .app{
+      width:100%;
+      max-width:390px;
+      height:100vh;
+      border-radius:20px;
+      overflow:hidden;
+      position:relative;
+      background:#f7f7f7;
+      box-shadow:0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .content{
+      height:100%;
+      overflow-y:auto;
+      padding-bottom:70px;
+    }
+
     header{background:#6c2bd9;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
     .menu{font-size:22px;cursor:pointer}
     .drawer{position:fixed;left:-260px;top:0;width:260px;height:100%;background:#fff;padding:15px;transition:0.3s;z-index:1000}
@@ -14,21 +32,17 @@
     .card{background:#fff;border-radius:10px;padding:10px}
     img{width:100%;height:100px;object-fit:cover;border-radius:8px}
     button{background:#6c2bd9;color:#fff;border:none;padding:6px;border-radius:6px;margin:3px}
-    .footer{position:fixed;bottom:0;width:100%;background:#fff;padding:10px}
+    .footer{position:absolute;bottom:0;width:100%;background:#fff;padding:10px;border-top:1px solid #ddd;z-index:999}
     input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
     .hidden{display:none}
 
-    /* Slide animation */
-    .page{position:absolute;width:100%;top:0;left:0;transition:transform 0.3s ease}
-    .enter{transform:translateX(100%)}
-    .active{transform:translateX(0)}
-    .exit{transform:translateX(-100%)}
+    .page{position:absolute;width:100%;top:0;left:0;height:100%;}
   </style>
 </head>
 <body>
+<div class="app">
 
-<!-- LOGIN -->
-<div id="login" class="page active">
+<div id="login" class="page">
 <header><h3>Login</h3></header>
 <div style="padding:15px">
 <input id="user" placeholder="Username">
@@ -37,7 +51,6 @@
 </div>
 </div>
 
-<!-- DRAWER -->
 <div id="drawer" class="drawer">
   <p onclick="openLiked()">❤️ Liked</p>
   <p onclick="openCart()">🛒 Cart</p>
@@ -45,43 +58,35 @@
   <p onclick="logout()">🚪 Logout</p>
 </div>
 
-<!-- HOME -->
 <div id="home" class="page hidden">
+<div class="content">
 <header>
 <span class="menu" onclick="toggleMenu()">☰</span>
 <h3>DMart</h3>
 </header>
 <input id="search" placeholder="Search" onkeyup="search()">
 <div id="products" class="grid"></div>
+</div>
 <div class="footer">
 Total ₹<span id="total">0</span>
 <button onclick="goOrder()">Order</button>
 </div>
 </div>
 
-<!-- ORDER -->
 <div id="order" class="page hidden">
-<header><h3>Order</h3></header>
-<div style="padding:15px">
+<div class="content">
+<header><h3>Order Details</h3></header>
+<div id="orderItems" style="padding:10px"></div>
 <input id="name" placeholder="Name">
 <input id="address" placeholder="Address">
 <input id="pincode" placeholder="Pincode">
-<select id="method" onchange="showPayment()">
+<select id="method">
 <option>COD</option><option>Card</option><option>UPI</option>
 </select>
-<div id="card" class="hidden">
-<input placeholder="Card Number"><input placeholder="Expiry"><input placeholder="CVV">
-</div>
-<div id="upi" class="hidden">
-<input placeholder="UPI ID">
-</div>
 <button onclick="placeOrder()">Confirm Order</button>
-<button onclick="goBack()">⬅ Back</button>
+<button onclick="backHome()">⬅ Back</button>
 </div>
 </div>
-
-<!-- DISPLAY -->
-<div id="display" class="page hidden"></div>
 
 <script>
 const products=[
@@ -92,60 +97,13 @@ const products=[
 
 let cart=[];
 let liked=[];
-let historyStack=[];
-let currentPage='login';
-
-function navigate(to){
-  const fromEl=document.getElementById(currentPage);
-  const toEl=document.getElementById(to);
-
-  if(currentPage!==to){
-    historyStack.push(currentPage);
-  }
-
-  fromEl.classList.remove('active');
-  fromEl.classList.add('exit');
-
-  toEl.classList.remove('hidden');
-  toEl.classList.add('enter');
-
-  setTimeout(()=>{
-    fromEl.classList.add('hidden');
-    fromEl.classList.remove('exit');
-    toEl.classList.remove('enter');
-    toEl.classList.add('active');
-    currentPage=to;
-  },200);
-}
-
-function goBack(){
-  if(historyStack.length===0) return;
-  const prev=historyStack.pop();
-  navigateBack(prev);
-}
-
-function navigateBack(to){
-  const fromEl=document.getElementById(currentPage);
-  const toEl=document.getElementById(to);
-
-  fromEl.classList.remove('active');
-  fromEl.classList.add('enter');
-
-  toEl.classList.remove('hidden');
-  toEl.classList.add('exit');
-
-  setTimeout(()=>{
-    fromEl.classList.add('hidden');
-    fromEl.classList.remove('enter');
-    toEl.classList.remove('exit');
-    toEl.classList.add('active');
-    currentPage=to;
-  },200);
-}
 
 function login(){
  let u=document.getElementById('user').value;
- if(u){localStorage.setItem('user',u);navigate('home');render(products);} }
+ if(u){localStorage.setItem('user',u);
+ document.getElementById('login').classList.add('hidden');
+ document.getElementById('home').classList.remove('hidden');
+ render(products);} }
 
 function logout(){localStorage.clear();location.reload();}
 function toggleMenu(){document.getElementById('drawer').classList.toggle('open');}
@@ -172,44 +130,47 @@ function update(){let t=0;cart.forEach(x=>t+=x.price);document.getElementById('t
 
 function search(){let v=document.getElementById('search').value.toLowerCase();render(products.filter(x=>x.name.toLowerCase().includes(v)));}
 
-function openLiked(){toggleMenu();showPage(liked.map(n=>products.find(p=>p.name===n)),'Liked');}
-function openCart(){toggleMenu();showPage(cart,'Cart');}
-function openOrders(){toggleMenu();let o=JSON.parse(localStorage.getItem('orders')||'[]');let h='<h3>Orders</h3>';o.forEach(x=>h+=`<p>₹${x.total}</p>`);setDisplay(h);} 
-
-function showPage(list,title){
- let h=`<h3>${title}</h3>`;
- if(list.length===0) h+='<p>No items</p>';
- list.forEach(p=>h+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`);
- setDisplay(h);
+function openLiked(){
+ toggleMenu();
+ document.getElementById('home').classList.add('hidden');
+ document.getElementById('order').classList.remove('hidden');
+ let html='<h3 style="padding:10px">Liked Items</h3>';
+ liked.forEach(n=>{
+   let p=products.find(x=>x.name===n);
+   html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`;
+ });
+ document.getElementById('orderItems').innerHTML=html;
 }
-
-function setDisplay(html){
- let d=document.getElementById('display');
- d.innerHTML=html+"<br><button onclick='goBack()'>⬅ Back</button>";
- navigate('display');
+function openCart(){
+ toggleMenu();
+ document.getElementById('home').classList.add('hidden');
+ document.getElementById('order').classList.remove('hidden');
+ let html='<h3 style="padding:10px">Cart Items</h3>';
+ cart.forEach(p=>{
+   html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`;
+ });
+ document.getElementById('orderItems').innerHTML=html;
 }
+function openOrders(){toggleMenu();alert('Orders feature');}
 
 function goOrder(){
  if(cart.length===0){alert('Add items');return;}
- navigate('order');
+ document.getElementById('home').classList.add('hidden');
+ document.getElementById('order').classList.remove('hidden');
+
+ let html='';
+ cart.forEach(p=>{
+ html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`;
+ });
+ document.getElementById('orderItems').innerHTML=html;
 }
 
-function showPayment(){
- let m=document.getElementById('method').value;
- document.getElementById('card').classList.add('hidden');
- document.getElementById('upi').classList.add('hidden');
- if(m==='Card') document.getElementById('card').classList.remove('hidden');
- if(m==='UPI') document.getElementById('upi').classList.remove('hidden');
+function backHome(){
+ document.getElementById('order').classList.add('hidden');
+ document.getElementById('home').classList.remove('hidden');
 }
 
 function placeOrder(){
- let name=document.getElementById('name').value;
- let addr=document.getElementById('address').value;
- if(!name||!addr){alert('Fill details');return;}
- let order={total:cart.reduce((a,b)=>a+b.price,0)};
- let o=JSON.parse(localStorage.getItem('orders')||'[]');
- o.push(order);
- localStorage.setItem('orders',JSON.stringify(o));
  alert('Order placed successfully 🎉');
  location.reload();
 }
@@ -217,5 +178,6 @@ function placeOrder(){
 render(products);
 </script>
 
+</div>
 </body>
 </html>
