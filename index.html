@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DMart Premium Orders Fixed</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body{margin:0;font-family:sans-serif;background:#f7f7f7;display:flex;justify-content:center}
-    .app{width:100%;max-width:390px;height:100vh;border-radius:20px;overflow:hidden;position:relative;background:#f7f7f7;box-shadow:0 0 20px rgba(0,0,0,0.2);}
-    .content{height:100%;overflow-y:auto;padding-bottom:70px;}
-    header{background:#6c2bd9;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center;}
-    .menu{font-size:22px;cursor:pointer}
-    .drawer{position:fixed;left:-260px;top:0;width:260px;height:100%;background:#fff;padding:15px;transition:0.3s;z-index:1000}
-    .drawer.open{left:0}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-    .card{background:#fff;border-radius:10px;padding:10px}
-    img{width:100%;height:100px;object-fit:cover;border-radius:8px}
-    button{background:#6c2bd9;color:#fff;border:none;padding:6px;border-radius:6px;margin:3px}
-    .footer{position:absolute;bottom:0;width:100%;background:#fff;padding:10px;border-top:1px solid #ddd;z-index:999}
-    input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
-    .hidden{display:none}
-    .page{position:absolute;width:100%;top:0;left:0;height:100%;}
-  </style>
+<title>DMart Flipkart Clone - Filter Fixed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{margin:0;font-family:sans-serif;background:#f7f7f7;display:flex;justify-content:center}
+  .app{width:100%;max-width:400px;height:100vh;border-radius:20px;overflow:hidden;position:relative;background:#f7f7f7;box-shadow:0 0 20px rgba(0,0,0,0.2);}
+  .content{height:100%;overflow-y:auto;padding-bottom:70px;}
+  header{background:#2874f0;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+  .menu{font-size:22px;cursor:pointer}
+  .drawer{position:fixed;left:-260px;top:0;width:260px;height:100%;background:#fff;padding:15px;transition:0.3s;z-index:1000;overflow-y:auto}
+  .drawer.open{left:0}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+  .card{background:#fff;border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center}
+  img{width:100%;height:100px;object-fit:cover;border-radius:8px}
+  button{background:#2874f0;color:#fff;border:none;padding:6px;border-radius:6px;margin:2px;cursor:pointer}
+  button:hover{opacity:0.9;}
+  .footer{position:absolute;bottom:0;width:100%;background:#fff;padding:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;z-index:99}
+  input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
+  .hidden{display:none}
+  .page{position:absolute;width:100%;top:0;left:0;height:100%;}
+  .quantity{display:flex;align-items:center;gap:5px;margin-top:5px;}
+  .quantity button{padding:2px 6px;font-weight:bold;}
+  .cart-item{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:5px;border-bottom:1px solid #ddd;}
+  .cart-item div{display:flex;flex-direction:column;}
+</style>
 </head>
 <body>
 <div class="app">
@@ -36,10 +41,10 @@
 
 <!-- DRAWER MENU -->
 <div id="drawer" class="drawer">
-  <p onclick="openLiked()">❤️ Liked</p>
-  <p onclick="openCart()">🛒 Cart</p>
-  <p onclick="openOrders()">📦 Orders</p>
-  <p onclick="logout()">🚪 Logout</p>
+<p onclick="openLiked()">❤️ Wishlist</p>
+<p onclick="openCart()">🛒 Cart</p>
+<p onclick="openOrders()">📦 Orders</p>
+<p onclick="logout()">🚪 Logout</p>
 </div>
 
 <!-- HOME PAGE -->
@@ -49,7 +54,10 @@
 <span class="menu" onclick="toggleMenu()">☰</span>
 <h3>DMart</h3>
 </header>
-<input id="search" placeholder="Search" onkeyup="searchProducts()">
+<input id="search" placeholder="Search products..." onkeyup="applyFilters()">
+<select id="category" onchange="applyFilters()">
+  <option value="">All Categories</option>
+</select>
 <div id="products" class="grid"></div>
 </div>
 <div class="footer">
@@ -67,10 +75,10 @@ Total ₹<span id="total">0</span>
 </div>
 </div>
 
-<!-- LIKED PAGE -->
+<!-- WISHLIST PAGE -->
 <div id="likedPage" class="page hidden">
 <div class="content">
-<header><h3>Liked Items</h3></header>
+<header><h3>Wishlist</h3></header>
 <div id="likedItems" style="padding:10px"></div>
 <button onclick="backHome()">⬅ Back</button>
 </div>
@@ -100,84 +108,107 @@ Total ₹<span id="total">0</span>
 </div>
 
 <script>
-// PRODUCTS
+// PRODUCTS DATA
 const products = [
-{name:'Tomato',price:30,img:'https://via.placeholder.com/150?text=Tomato'},
-{name:'Milk',price:50,img:'https://via.placeholder.com/150?text=Milk'},
-{name:'Rice',price:120,img:'https://via.placeholder.com/150?text=Rice'}
+{name:'Tomato',price:30,category:'Vegetables',img:'https://via.placeholder.com/150?text=Tomato'},
+{name:'Milk',price:50,category:'Dairy',img:'https://via.placeholder.com/150?text=Milk'},
+{name:'Rice',price:120,category:'Grains',img:'https://via.placeholder.com/150?text=Rice'},
+{name:'Apple',price:80,category:'Fruits',img:'https://via.placeholder.com/150?text=Apple'},
+{name:'Cheese',price:200,category:'Dairy',img:'https://via.placeholder.com/150?text=Cheese'},
+{name:'Potato',price:20,category:'Vegetables',img:'https://via.placeholder.com/150?text=Potato'}
 ];
 
 let cart = [];
 let liked = [];
-let orders = []; // <- STORE ALL ORDERS
+let orders = [];
+
+// CATEGORIES
+const categories = [...new Set(products.map(p=>p.category))];
+const catSelect = document.getElementById('category');
+categories.forEach(c=>{ let opt=document.createElement('option'); opt.value=c; opt.innerText=c; catSelect.appendChild(opt); });
 
 // LOGIN
-function login(){
- let u=document.getElementById('user').value;
- if(u){localStorage.setItem('user',u);
- document.getElementById('login').classList.add('hidden');
- document.getElementById('home').classList.remove('hidden');
- renderProducts(products);}
-}
-
-function logout(){localStorage.clear();location.reload();}
+function login(){ let u=document.getElementById('user').value; if(u){localStorage.setItem('user',u); showPage('home'); renderProducts(products);} }
+function logout(){localStorage.clear(); location.reload();}
 function toggleMenu(){document.getElementById('drawer').classList.toggle('open');}
+
+// PAGE SWITCH
+function showPage(id){ ['home','cartPage','likedPage','orderPage','login','ordersPage'].forEach(p=>document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+
+// FILTER FUNCTION - SEARCH + CATEGORY
+function applyFilters(){
+  const search = document.getElementById('search').value.toLowerCase();
+  const category = document.getElementById('category').value;
+  const filtered = products.filter(p=> {
+    const matchesCategory = category === '' || p.category === category;
+    const matchesSearch = search === '' || p.name.toLowerCase().includes(search);
+    return matchesCategory && matchesSearch;
+  });
+  renderProducts(filtered);
+}
 
 // RENDER PRODUCTS
 function renderProducts(list){
- const p=document.getElementById('products'); p.innerHTML='';
- list.forEach((x,i)=>{
- let q=cart.filter(c=>c.name===x.name).length;
- let l=liked.includes(x.name)?'❤️':'🤍';
- p.innerHTML+=`<div class='card'>
- <img src='${x.img}'>
- <h4>${x.name}</h4>
- <p>₹${x.price}</p>
- <button onclick='like(${i})'>${l}</button>
- <button onclick='remove(${i})'>-</button>${q}<button onclick='add(${i})'>+</button>
- </div>`;
- });
- updateTotal();
+const p=document.getElementById('products'); p.innerHTML='';
+list.forEach((x,i)=>{
+let qty = cart.filter(c=>c.name===x.name).length;
+let likedIcon = liked.includes(x.name)?'❤️':'🤍';
+p.innerHTML+=`<div class='card'>
+<img src='${x.img}'><h4>${x.name}</h4><p>₹${x.price}</p>
+<button onclick='toggleLike(${i})'>${likedIcon}</button>
+<div class="quantity">
+<button onclick='remove(${i})'>-</button>${qty}<button onclick='add(${i})'>+</button>
+</div>
+</div>`;
+});
+updateTotal();
 }
 
-function add(i){cart.push(products[i]);renderProducts(products);}
-function remove(i){let idx=cart.findIndex(c=>c.name===products[i].name);if(idx>-1)cart.splice(idx,1);renderProducts(products);}
-function like(i){let n=products[i].name;liked.includes(n)?liked=liked.filter(x=>x!==n):liked.push(n);renderProducts(products);}
-function updateTotal(){let t=0;cart.forEach(x=>t+=x.price);document.getElementById('total').innerText=t;}
-function searchProducts(){let v=document.getElementById('search').value.toLowerCase();renderProducts(products.filter(x=>x.name.toLowerCase().includes(v)));}
+// CART FUNCTIONS
+function add(i){cart.push(products[i]); applyFilters();}
+function remove(i){let idx=cart.findIndex(c=>c.name===products[i].name); if(idx>-1) cart.splice(idx,1); applyFilters();}
+function toggleLike(i){let n=products[i].name; liked.includes(n)?liked=liked.filter(x=>x!==n):liked.push(n); applyFilters();}
+function updateTotal(){let t=cart.reduce((a,b)=>a+b.price,0);document.getElementById('total').innerText=t;}
 
-// PAGES
-function openCart(){toggleMenu();showPage('cartPage'); renderCart();}
+// CART PAGE
+function openCart(){toggleMenu(); showPage('cartPage'); renderCart();}
+function renderCart(){ 
+  const cDiv = document.getElementById('cartItems'); cDiv.innerHTML=''; 
+  if(cart.length===0){ cDiv.innerHTML='<p>Cart is empty</p>'; return; }
+  const counted = {}; cart.forEach(i=>counted[i.name] = (counted[i.name]||0)+1);
+  for(let name in counted){
+    let p = products.find(x=>x.name===name);
+    let qty = counted[name];
+    cDiv.innerHTML += `<div class="cart-item">
+      <div><strong>${p.name}</strong> - ₹${p.price}</div>
+      <div class="quantity">
+        <button onclick="decreaseCart('${p.name}')">-</button>${qty}<button onclick="increaseCart('${p.name}')">+</button>
+        <button onclick="removeAll('${p.name}')">🗑️ Remove</button>
+      </div>
+    </div>`;
+  }
+}
+
+// CART QUANTITY FUNCTIONS
+function increaseCart(name){ let p = products.find(x=>x.name===name); cart.push(p); renderCart(); updateTotal(); applyFilters();}
+function decreaseCart(name){ let idx = cart.findIndex(c=>c.name===name); if(idx>-1) cart.splice(idx,1); renderCart(); updateTotal(); applyFilters();}
+function removeAll(name){ cart = cart.filter(c=>c.name!==name); renderCart(); updateTotal(); applyFilters();}
+
+// WISHLIST
 function openLiked(){toggleMenu();showPage('likedPage'); renderLiked();}
-function openOrders(){toggleMenu();showPage('ordersPage'); renderOrders();}
-function goOrder(){if(cart.length===0){alert('Add items'); return;} showPage('orderPage'); renderOrder();}
-function backHome(){showPage('home');}
-function showPage(id){
-['home','cartPage','likedPage','orderPage','login','ordersPage'].forEach(p=>document.getElementById(p).classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
-}
-
-// RENDER CART & LIKED & ORDER
-function renderCart(){let html=''; cart.forEach(p=>{html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`}); document.getElementById('cartItems').innerHTML=html;}
 function renderLiked(){let html=''; liked.forEach(n=>{let p=products.find(x=>x.name===n); html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`}); document.getElementById('likedItems').innerHTML=html;}
-function renderOrder(){let html=''; cart.forEach(p=>{html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`}); document.getElementById('orderItems').innerHTML=html;}
-function renderOrders(){let html=''; orders.forEach((o,i)=>{
- html+=`<div class='card'><p>Order #${i+1} - ₹${o.total}</p>`;
- o.items.forEach(it=>html+=`<p>${it.name} - ₹${it.price}</p>`);
- html+=`<p>Method: ${o.method}, ${o.name}, ${o.address}, ${o.pincode}</p></div>`;
- }); if(html==='') html='No orders yet.'; document.getElementById('ordersList').innerHTML=html;}
 
-// PLACE ORDER
-function placeOrder(){
- let name=document.getElementById('name').value||'Anonymous';
- let address=document.getElementById('address').value||'N/A';
- let pincode=document.getElementById('pincode').value||'000000';
- let method=document.getElementById('method').value;
- let total=cart.reduce((a,b)=>a+b.price,0);
- orders.push({items:[...cart], total, name, address, pincode, method});
- alert('Order placed successfully 🎉');
- cart=[]; updateTotal(); backHome();
-}
+// ORDER PAGE
+function goOrder(){if(cart.length===0){alert('Add items'); return;} showPage('orderPage'); renderOrder();}
+function renderOrder(){let html=''; cart.forEach(p=>{let qty=cart.filter(c=>c.name===p.name).length; html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price} x ${qty}</p></div>`}); document.getElementById('orderItems').innerHTML=html;}
+function placeOrder(){let name=document.getElementById('name').value||'Anonymous'; let addr=document.getElementById('address').value||'N/A'; let pin=document.getElementById('pincode').value||'000000'; let method=document.getElementById('method').value; let total=cart.reduce((a,b)=>a+b.price,0); orders.push({items:[...cart], total,name,addr,pin,method}); alert('Order Placed 🎉'); cart=[]; updateTotal(); backHome();}
+
+// ORDERS PAGE
+function openOrders(){toggleMenu();showPage('ordersPage'); renderOrders();}
+function renderOrders(){let html=''; orders.forEach((o,i)=>{html+=`<div class='card'><p>Order #${i+1} - ₹${o.total}</p>`; o.items.forEach(it=>html+=`<p>${it.name} - ₹${it.price}</p>`); html+=`<p>${o.method}, ${o.name}, ${o.addr}, ${o.pin}</p></div>`}); if(html==='') html='No orders yet.'; document.getElementById('ordersList').innerHTML=html;}
+
+// BACK HOME
+function backHome(){showPage('home');}
 
 renderProducts(products);
 </script>
