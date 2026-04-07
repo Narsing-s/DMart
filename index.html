@@ -1,30 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DMart Premium Final</title>
+  <title>DMart Premium Orders Fixed</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body{margin:0;font-family:Inter;background:#f7f7f7;display:flex;justify-content:center}
-
-    .app{
-      width:100%;
-      max-width:390px;
-      height:100vh;
-      border-radius:20px;
-      overflow:hidden;
-      position:relative;
-      background:#f7f7f7;
-      box-shadow:0 0 20px rgba(0,0,0,0.2);
-    }
-
-    .content{
-      height:100%;
-      overflow-y:auto;
-      padding-bottom:70px;
-    }
-
-    header{background:#6c2bd9;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
+    body{margin:0;font-family:sans-serif;background:#f7f7f7;display:flex;justify-content:center}
+    .app{width:100%;max-width:390px;height:100vh;border-radius:20px;overflow:hidden;position:relative;background:#f7f7f7;box-shadow:0 0 20px rgba(0,0,0,0.2);}
+    .content{height:100%;overflow-y:auto;padding-bottom:70px;}
+    header{background:#6c2bd9;color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center;}
     .menu{font-size:22px;cursor:pointer}
     .drawer{position:fixed;left:-260px;top:0;width:260px;height:100%;background:#fff;padding:15px;transition:0.3s;z-index:1000}
     .drawer.open{left:0}
@@ -35,13 +18,13 @@
     .footer{position:absolute;bottom:0;width:100%;background:#fff;padding:10px;border-top:1px solid #ddd;z-index:999}
     input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ccc}
     .hidden{display:none}
-
     .page{position:absolute;width:100%;top:0;left:0;height:100%;}
   </style>
 </head>
 <body>
 <div class="app">
 
+<!-- LOGIN PAGE -->
 <div id="login" class="page">
 <header><h3>Login</h3></header>
 <div style="padding:15px">
@@ -51,6 +34,7 @@
 </div>
 </div>
 
+<!-- DRAWER MENU -->
 <div id="drawer" class="drawer">
   <p onclick="openLiked()">❤️ Liked</p>
   <p onclick="openCart()">🛒 Cart</p>
@@ -58,13 +42,14 @@
   <p onclick="logout()">🚪 Logout</p>
 </div>
 
+<!-- HOME PAGE -->
 <div id="home" class="page hidden">
 <div class="content">
 <header>
 <span class="menu" onclick="toggleMenu()">☰</span>
 <h3>DMart</h3>
 </header>
-<input id="search" placeholder="Search" onkeyup="search()">
+<input id="search" placeholder="Search" onkeyup="searchProducts()">
 <div id="products" class="grid"></div>
 </div>
 <div class="footer">
@@ -73,43 +58,74 @@ Total ₹<span id="total">0</span>
 </div>
 </div>
 
-<div id="order" class="page hidden">
+<!-- CART PAGE -->
+<div id="cartPage" class="page hidden">
 <div class="content">
-<header><h3>Order Details</h3></header>
+<header><h3>Cart Items</h3></header>
+<div id="cartItems" style="padding:10px"></div>
+<button onclick="backHome()">⬅ Back</button>
+</div>
+</div>
+
+<!-- LIKED PAGE -->
+<div id="likedPage" class="page hidden">
+<div class="content">
+<header><h3>Liked Items</h3></header>
+<div id="likedItems" style="padding:10px"></div>
+<button onclick="backHome()">⬅ Back</button>
+</div>
+</div>
+
+<!-- ORDER PAGE -->
+<div id="orderPage" class="page hidden">
+<div class="content">
+<header><h3>Place Order</h3></header>
 <div id="orderItems" style="padding:10px"></div>
 <input id="name" placeholder="Name">
 <input id="address" placeholder="Address">
 <input id="pincode" placeholder="Pincode">
-<select id="method">
-<option>COD</option><option>Card</option><option>UPI</option>
-</select>
+<select id="method"><option>COD</option><option>Card</option><option>UPI</option></select>
 <button onclick="placeOrder()">Confirm Order</button>
 <button onclick="backHome()">⬅ Back</button>
 </div>
 </div>
 
+<!-- ORDERS LIST PAGE -->
+<div id="ordersPage" class="page hidden">
+<div class="content">
+<header><h3>My Orders</h3></header>
+<div id="ordersList" style="padding:10px"></div>
+<button onclick="backHome()">⬅ Back</button>
+</div>
+</div>
+
 <script>
-const products=[
-{name:'Tomato',price:30,img:'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce'},
-{name:'Milk',price:50,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b'},
-{name:'Rice',price:1200,img:'https://images.unsplash.com/photo-1586201375761-83865001e31c'}
+// PRODUCTS
+const products = [
+{name:'Tomato',price:30,img:'https://via.placeholder.com/150?text=Tomato'},
+{name:'Milk',price:50,img:'https://via.placeholder.com/150?text=Milk'},
+{name:'Rice',price:120,img:'https://via.placeholder.com/150?text=Rice'}
 ];
 
-let cart=[];
-let liked=[];
+let cart = [];
+let liked = [];
+let orders = []; // <- STORE ALL ORDERS
 
+// LOGIN
 function login(){
  let u=document.getElementById('user').value;
  if(u){localStorage.setItem('user',u);
  document.getElementById('login').classList.add('hidden');
  document.getElementById('home').classList.remove('hidden');
- render(products);} }
+ renderProducts(products);}
+}
 
 function logout(){localStorage.clear();location.reload();}
 function toggleMenu(){document.getElementById('drawer').classList.toggle('open');}
 
-function render(list){
- let p=document.getElementById('products');p.innerHTML='';
+// RENDER PRODUCTS
+function renderProducts(list){
+ const p=document.getElementById('products'); p.innerHTML='';
  list.forEach((x,i)=>{
  let q=cart.filter(c=>c.name===x.name).length;
  let l=liked.includes(x.name)?'❤️':'🤍';
@@ -120,62 +136,50 @@ function render(list){
  <button onclick='like(${i})'>${l}</button>
  <button onclick='remove(${i})'>-</button>${q}<button onclick='add(${i})'>+</button>
  </div>`;
- });}
-
-function add(i){cart.push(products[i]);update();render(products);} 
-function remove(i){let x=cart.findIndex(c=>c.name===products[i].name);if(x>-1)cart.splice(x,1);update();render(products);} 
-function like(i){let n=products[i].name;liked.includes(n)?liked=liked.filter(x=>x!==n):liked.push(n);render(products);} 
-
-function update(){let t=0;cart.forEach(x=>t+=x.price);document.getElementById('total').innerText=t;}
-
-function search(){let v=document.getElementById('search').value.toLowerCase();render(products.filter(x=>x.name.toLowerCase().includes(v)));}
-
-function openLiked(){
- toggleMenu();
- document.getElementById('home').classList.add('hidden');
- document.getElementById('order').classList.remove('hidden');
- let html='<h3 style="padding:10px">Liked Items</h3>';
- liked.forEach(n=>{
-   let p=products.find(x=>x.name===n);
-   html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`;
  });
- document.getElementById('orderItems').innerHTML=html;
-}
-function openCart(){
- toggleMenu();
- document.getElementById('home').classList.add('hidden');
- document.getElementById('order').classList.remove('hidden');
- let html='<h3 style="padding:10px">Cart Items</h3>';
- cart.forEach(p=>{
-   html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`;
- });
- document.getElementById('orderItems').innerHTML=html;
-}
-function openOrders(){toggleMenu();alert('Orders feature');}
-
-function goOrder(){
- if(cart.length===0){alert('Add items');return;}
- document.getElementById('home').classList.add('hidden');
- document.getElementById('order').classList.remove('hidden');
-
- let html='';
- cart.forEach(p=>{
- html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`;
- });
- document.getElementById('orderItems').innerHTML=html;
+ updateTotal();
 }
 
-function backHome(){
- document.getElementById('order').classList.add('hidden');
- document.getElementById('home').classList.remove('hidden');
+function add(i){cart.push(products[i]);renderProducts(products);}
+function remove(i){let idx=cart.findIndex(c=>c.name===products[i].name);if(idx>-1)cart.splice(idx,1);renderProducts(products);}
+function like(i){let n=products[i].name;liked.includes(n)?liked=liked.filter(x=>x!==n):liked.push(n);renderProducts(products);}
+function updateTotal(){let t=0;cart.forEach(x=>t+=x.price);document.getElementById('total').innerText=t;}
+function searchProducts(){let v=document.getElementById('search').value.toLowerCase();renderProducts(products.filter(x=>x.name.toLowerCase().includes(v)));}
+
+// PAGES
+function openCart(){toggleMenu();showPage('cartPage'); renderCart();}
+function openLiked(){toggleMenu();showPage('likedPage'); renderLiked();}
+function openOrders(){toggleMenu();showPage('ordersPage'); renderOrders();}
+function goOrder(){if(cart.length===0){alert('Add items'); return;} showPage('orderPage'); renderOrder();}
+function backHome(){showPage('home');}
+function showPage(id){
+['home','cartPage','likedPage','orderPage','login','ordersPage'].forEach(p=>document.getElementById(p).classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
 }
 
+// RENDER CART & LIKED & ORDER
+function renderCart(){let html=''; cart.forEach(p=>{html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`}); document.getElementById('cartItems').innerHTML=html;}
+function renderLiked(){let html=''; liked.forEach(n=>{let p=products.find(x=>x.name===n); html+=`<div class='card'><img src='${p.img}'><p>${p.name}</p></div>`}); document.getElementById('likedItems').innerHTML=html;}
+function renderOrder(){let html=''; cart.forEach(p=>{html+=`<div class='card'><img src='${p.img}'><p>${p.name} - ₹${p.price}</p></div>`}); document.getElementById('orderItems').innerHTML=html;}
+function renderOrders(){let html=''; orders.forEach((o,i)=>{
+ html+=`<div class='card'><p>Order #${i+1} - ₹${o.total}</p>`;
+ o.items.forEach(it=>html+=`<p>${it.name} - ₹${it.price}</p>`);
+ html+=`<p>Method: ${o.method}, ${o.name}, ${o.address}, ${o.pincode}</p></div>`;
+ }); if(html==='') html='No orders yet.'; document.getElementById('ordersList').innerHTML=html;}
+
+// PLACE ORDER
 function placeOrder(){
+ let name=document.getElementById('name').value||'Anonymous';
+ let address=document.getElementById('address').value||'N/A';
+ let pincode=document.getElementById('pincode').value||'000000';
+ let method=document.getElementById('method').value;
+ let total=cart.reduce((a,b)=>a+b.price,0);
+ orders.push({items:[...cart], total, name, address, pincode, method});
  alert('Order placed successfully 🎉');
- location.reload();
+ cart=[]; updateTotal(); backHome();
 }
 
-render(products);
+renderProducts(products);
 </script>
 
 </div>
